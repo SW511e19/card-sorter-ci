@@ -24,8 +24,8 @@ jobs: # A basic unit of work in a run
             sudo pip install python-ev3dev
             pipenv install
       - run:
-        command: |
-          pipenv run python sorter_app/ev3_scheduler.py
+          command: |
+            pipenv run python sorter_app/ev3_scheduler.py
       - run:
           command: |
             pipenv run python test/unit/sorter_app/calc_test.py
