@@ -21,15 +21,13 @@ jobs: # A basic unit of work in a run
       - run:
           command: |
             sudo pip install pipenv
+            sudo pip install Pillow==2.2.2
             sudo pip install python-ev3dev
             sudo pip install numpy
             sudo pip install request
             sudo pip install boto3
-            pip install Pillow
+            sudo pip install Pillow
             pipenv install
-      - run:
-          command: |
-            pipenv run python sorter_app/ev3_scheduler.py
       - run:
           command: |
             pipenv run python test/unit/sorter_app/calc_test.py
