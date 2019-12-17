@@ -1,13 +1,15 @@
 class Motor():
     def __init__(self, motor):
+        position = 0
         self.motor = motor
     
     def run_to_abs_pos(self, position_sp, speed_sp):
+        self.position = position_sp
         print("Ran motor " + str(self) +"with position : " + str(position_sp) + " and Speed : " + str(speed_sp))
 
     def SpeedPercent(self, speed):
         print("Set EV3 Speed on : " + str(self) + str(speed))
-        
+
 class ColorSensor():
     def __init__(self):
         pass

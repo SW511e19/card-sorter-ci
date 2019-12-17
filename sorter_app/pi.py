@@ -9,24 +9,27 @@ import boto3
 import requests
 
 class RasPi(object):
-    def __init__(self):
-        # Setting Up the Server Settings for Raspberry Pi
-        localIP     = "169.254.204.164"
-        localPort   = 22222
-        bufferSize  = 1024
 
-        #Defining Attributes
-        msgFromServer       = "This is sent from the server"
-        bytesToSend         = str.encode(msgFromServer)
+    # Setting Up the Server Settings for Raspberry Pi
+    localIP     = "169.254.204.164"
+    localPort   = 22222
+    bufferSize  = 1024
 
-        # Create a datagram socket
-        UDPServerSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+    #Defining Attributes
+    msgFromServer       = "This is sent from the server"
+    bytesToSend         = str.encode(msgFromServer)
 
-        # Bind to address and ip
-        UDPServerSocket.bind((localIP, localPort))
+    # Create a datagram socket
+    UDPServerSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 
-        # Set OCR FilePath
-        filepath = 'card.txt'
+    # Bind to address and ip
+    UDPServerSocket.bind((localIP, localPort))
+
+    # Set OCR FilePath
+    filepath = 'card.txt'
+    
+    def __init__(self): # stuff here might have to be outside?
+        pass
 
     def convert(self, list):
         list.pop() #removes last empty element due to conversion
