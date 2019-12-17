@@ -78,7 +78,9 @@ class Scheduler(object):
                 self.single_dispenser(sd, front_pos)
 
     def get_card_placement(self):
-        if saw_card == 1:
+        card = 1
+        card = saw_card
+        if card == 1:
             return ss.socket_get_placement(self)
 
 
