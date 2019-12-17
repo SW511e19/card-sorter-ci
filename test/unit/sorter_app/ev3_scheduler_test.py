@@ -35,18 +35,6 @@ class TestScheduler(ut.TestCase):
         position = self.ev3_scheduler.single_dispenser(single_dispenser_motor, position)
         self.assertEqual(single_dispenser_motor.position, -200, msg="Position for SD is not -200")
 
-    def test_dispense_one_card(self):
-        # Defining Motors
-        single_dispenser_motor = ev3.LargeMotor('outB')
-
-        # Defining Attributes
-        position = 0
-
-        # Running Methods
-        position = self.ev3_scheduler.dispense_one_card(position)
-        self.assertEqual(single_dispenser_motor.position, -200, msg="Position for SD is not -200")
-
-
     
 if __name__ == '__main__':
     ut.main()
