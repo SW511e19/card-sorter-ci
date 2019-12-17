@@ -22,6 +22,9 @@ jobs: # A basic unit of work in a run
           command: |
             sudo pip install pipenv
             sudo pip install python-ev3dev
+            sudo pip install numpy
+            sudo pip install request
+            sudo pip install boto3
             pipenv install
       - run:
           command: |
