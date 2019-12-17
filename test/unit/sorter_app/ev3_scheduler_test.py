@@ -44,7 +44,7 @@ class TestScheduler(ut.TestCase):
 
         # Running Methods
         position = self.ev3_scheduler.dispense_one_card(position)
-        self.assertEqual(single_dispenser_motor.position, -200, msg="Position for SD is not -200")
+        self.assertEqual(single_dispenser_motor.get_position(), -200, msg="Position for SD is not -200")
 
 
     

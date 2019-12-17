@@ -4,7 +4,7 @@ class Motor():
         self.position = position
 
     def get_position(self): 
-        return self._position 
+        return self.position 
     
     def run_to_abs_pos(self, position_sp, speed_sp):
         self.position = position_sp
