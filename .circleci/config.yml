@@ -20,7 +20,8 @@ jobs: # A basic unit of work in a run
       - run: sudo chown -R circleci:circleci /usr/local/lib/python3.6/site-packages
       - run:
           command: |
-            sudo pip install  PIL 
+            sudo apt-get install python-imaging
+            sudo python3 -m pip install Pillow
             sudo pip install pipenv
             sudo pip install Pillow==6.1.0
             sudo pip install python-ev3dev
