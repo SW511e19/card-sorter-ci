@@ -2,9 +2,12 @@ import sys
 sys.path.append("test/mock")
 import ev3_mock as ev3 # Simulated Test Environment
 #import ev3dev.ev3 as ev3 # Live Environment
+
+#from sorter_app.ev3_scheduler_socket import SchedulerSocket as ss # Live Environment
+from scheduler_socket_mock import SchedulerSocket as ss
+
 from time import perf_counter
 import time
-import socket
 import datetime as dt
 import signal
 
@@ -17,34 +20,13 @@ class Scheduler(object):
     single_dispenser_motor = ev3.LargeMotor('outB')
     card_pusher_motor = ev3.MediumMotor('outC')
 
-    # Sets the READY message, which means that the ev3 is ready to communicate with the PI
-    msg_from_client = "READY"
-
-    # Setting up clocal
-
-    # Setting Up the Server Settings for EV3cc
-    local_IP = "192.168.2.3"
-    local_Port = 22222
-    buffer_size = 1024
-
-    # Settings Up
-    bytes_to_send = str.encode(msg_from_client)
-    pi_address_port = ("169.254.204.164", 22222)  # IP and Port of the Raspberry PI
-    cc_address_port = ("192.168.2.4", 60000)  # IP + Port of the CC EV3, change when it has an actual address
-
-    # Create a UDP socket at client side
-    UDP_client_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
-    cc_UDP_client_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
-    UDP_server_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
-    # UDP_server_socket.bind((local_IP, local_Port))
-
     # Set Postion of each Motor in Symboltable for global reference and updating.
     globals()['back_pos'] = 0
     globals()['front_pos'] = 0
     globals()['piston_pos'] = 0
     globals()['saw_card'] = 0
     globals()['current_cycle'] = 0
-
+    
     def __init__(self):
         pass
 
@@ -79,88 +61,41 @@ class Scheduler(object):
 
 
 
-    def single_dispenser(self, position):
+    def single_dispenser(self, sd, position):
         # Updating Symbol Table to Move One Cycle
         globals()['front_pos'] = position - 50
         # Setting the position to the new target
         position = globals()['front_pos']
         # Running one Cycle to the targeted position.
-        single_dispenser_motor.run_to_abs_pos(position_sp=position, speed_sp=40)
+        sd.run_to_abs_pos(position_sp=position, speed_sp=40)
         time.sleep(2)
         return position
 
     # Tænk på at få den til at køre på worst time af et kort et antal gange
-    def dispense_one_card(self):
+    def dispense_one_card(self, sd):
         for x in range(6):
-            if not check_if_card():
-                single_dispenser(front_pos)
-
-    def check_if_card(self):
-        # Asks the Pi if there is card or not. Card:No_card
-        # Timeout on 15 seconds
-        UDP_client_socket.sendto(bytes_to_send, pi_address_port)
-        msg_from_server = UDP_client_socket.recvfrom(buffer_size)
-        msg = "Card check upcode from the Rasberry Pi {}".format(msg_from_server[0])
-        print(msg)
-        if ("b'card'" in msg):
-            print("Read Card")
-            globals()['saw_card'] = 1
-            return True
-        if ("not_card" in msg):
-            print("Read Not Card")
-            globals()['saw_card'] = 0
-            return False
-
+            if not (ss.socket_if_card(self)):
+                self.single_dispenser(sd, front_pos)
 
     def get_card_placement(self):
         if saw_card == 1:
-            msg_from_client = "REQUEST"
-            bytes_to_send = str.encode(msg_from_client)
-            buffer_size = 1024
-            UDP_client_socket.sendto(bytes_to_send, pi_address_port)
-            msg_from_server = UDP_client_socket.recvfrom(buffer_size)
-            print("Card check upcode from the Rasberry Pi {}".format(msg_from_server[0]))
-            return msg_from_server[0]
+            return ss.socket_get_placement(self)
 
 
     def position_cc(self, card_placement):
         if saw_card == 1:
-            bts = str.encode(card_placement)
-            cc_UDP_client_socket.sendto(bts, cc_address_port)
-            bytes_address_pair = cc_UDP_client_socket.recvfrom(buffer_size)  # Receives mesage back from card collector
-            print("Connection Established")
-            message = bytes_address_pair[0]  # Stores the message
-            client_msg = "Message from Client:{}".format(message)
+            ss.socket_place_cc(self, card_placement)
 
-    def push_card(self, position):
+    def push_card(self, cp, position):
         if saw_card == 1:
             # Updating Symbol Table to Move One Cycle
             globals()['piston_pos'] = position + 360
             # Setting the position to the new target
             position = globals()['piston_pos']
             # Running one Cycle to the targeted position.
-            card_pusher_motor.run_to_abs_pos(position_sp=position, speed_sp=400)
+            cp.run_to_abs_pos(position_sp=position, speed_sp=400)
             time.sleep(5)
-
-
-
-    def dispense_at_least_5_cards(self):
-        # Runs the dispenser enough to at least dispense 5 cards, worst case execution time of one card 5 times?
-        # we need to base this on something and then this can be one big task, and talk about how this makes our system
-        # slower since we need to base it on worst case execution time of up to 5 cards even though less may be dispensed
-        for x in range(24):
-            single_dispenser_motor(front_pos)
-            check_if_card()
-            if saw_card == 1:
-                get_card_placement()
-                # Send message to card collector
-                bytes_address_pair = UDP_server_socket.recvfrom(buffer_size)
-                print("Connection Established")
-                message = bytes_address_pair[0]
-                client_msg = "Message from Client:{}".format(message)
-                if "OK" in client_msg:
-                    push_card(piston_pos)
-
+            return position
 
     # Runs when an interrupt happens. Might get some fault tolerance depending on what approach is best.
     def interrupt_handler(self, signum, frame):
@@ -179,7 +114,7 @@ class Scheduler(object):
 
     def cyclic_executives(self):
         # Ensures machine always starts in the same state
-        calibrate_machine(multiple_dispenser_motor, single_dispenser_motor, card_pusher_motor)
+        self.calibrate_machine(self.multiple_dispenser_motor, self.single_dispenser_motor, self.card_pusher_motor)
         minor_cycle_duration = 130
         second_scheduler = 5
         signal.signal(signal.SIGALRM, interrupt_handler)
@@ -190,7 +125,7 @@ class Scheduler(object):
             if second_scheduler == 5: #Only runs this every 5 minor cycles
                 multiple_dispenser(multiple_dispenser_motor, back_pos) #computation time (CT): 11
                 second_scheduler = 0
-            dispense_one_card() #CT: 37
+            dispense_one_card(single_dispenser_motor) #CT: 37
             card_placement = get_card_placement() #CT: 10
             position_cc(card_placement) #CT: 33
             push_card(piston_pos) #CT: 5
@@ -201,14 +136,13 @@ class Scheduler(object):
 
     def test_runner(self):
         globals()['saw_card'] = 1
-        #calibrate_machine()
-        #multiple_dispenser(back_pos)
-        #dispense_one_card()
-        card_placement = get_card_placement()
-        #print(card_placement)
-        
-        #position_cc(card_placement)
-        push_card(piston_pos)
+        self.calibrate_machine(self.multiple_dispenser_motor, self.single_dispenser_motor, self.card_pusher_motor)
+        self.multiple_dispenser(self.multiple_dispenser_motor, back_pos)
+        self.dispense_one_card(self.single_dispenser_motor)
+        card_placement = self.get_card_placement()
+        print(card_placement)
+        self.position_cc(card_placement)
+        self.push_card(self.card_pusher_motor, piston_pos)
 
     def pretty_print_CE(self, period_start_time_p, minor_cycle_p, current_cycle_p):
         print("This cycle: ")
@@ -217,9 +151,6 @@ class Scheduler(object):
         print("Currenct Cycle: " + str(current_cycle_p))
         print("Lower bound: " + str(period_start_time_p + minor_cycle_p * current_cycle_p))
         print("Upper bound: " + str(period_start_time_p + minor_cycle_p * (current_cycle_p + 1)))
-        
-    #test_runner()
-    #print("fuck")
 
     def take_time(self):
         log = ""
@@ -243,3 +174,4 @@ class Scheduler(object):
 if __name__ == '__main__':
     schd = Scheduler()
     #schd.cyclic_executives()
+    schd.test_runner()
