@@ -25,6 +25,7 @@ jobs: # A basic unit of work in a run
             sudo pip install numpy
             sudo pip install request
             sudo pip install boto3
+            pip install Pillow
             pipenv install
       - run:
           command: |
