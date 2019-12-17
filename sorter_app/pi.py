@@ -2,6 +2,7 @@ from pathlib import Path
 import os
 import time
 import uuid
+import PIL
 from PIL import Image, ImageChops
 import socket
 import boto3
