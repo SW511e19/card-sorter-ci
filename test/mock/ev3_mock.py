@@ -1,7 +1,10 @@
 class Motor():
-    def __init__(self, motor):
-        position = 0
+    def __init__(self, motor, position = 0):
         self.motor = motor
+        self.position = position
+
+    def get_position(self): 
+        return self._position 
     
     def run_to_abs_pos(self, position_sp, speed_sp):
         self.position = position_sp

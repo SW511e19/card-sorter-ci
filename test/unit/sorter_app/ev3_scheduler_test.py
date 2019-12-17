@@ -19,7 +19,7 @@ class TestScheduler(ut.TestCase):
         # Running Methods
         position = self.ev3_scheduler.multiple_dispenser(multiple_dispenser_motor, position)
         position = self.ev3_scheduler.multiple_dispenser(multiple_dispenser_motor, position)
-        self.assertEqual(multiple_dispenser_motor.position, -2000, msg="Position for MD is not -2000")
+        self.assertEqual(multiple_dispenser_motor.get_position(), -2000, msg="Position for MD is not -2000")
 
     def test_single_dispenser(self):
         # Defining Motors
@@ -33,7 +33,7 @@ class TestScheduler(ut.TestCase):
         position = self.ev3_scheduler.single_dispenser(single_dispenser_motor, position)
         position = self.ev3_scheduler.single_dispenser(single_dispenser_motor, position)
         position = self.ev3_scheduler.single_dispenser(single_dispenser_motor, position)
-        self.assertEqual(single_dispenser_motor.position, -200, msg="Position for SD is not -200")
+        self.assertEqual(single_dispenser_motor.get_position(), -200, msg="Position for SD is not -200")
 
     def test_dispense_one_card(self):
         # Defining Motors
