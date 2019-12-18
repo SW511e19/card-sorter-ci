@@ -20,16 +20,19 @@ jobs: # A basic unit of work in a run
       - run: sudo chown -R circleci:circleci /usr/local/lib/python3.6/site-packages
       - run:
           command: |
+            sudo apt-get install python-imaging
+            sudo python3 -m pip install Pillow
             sudo pip install pipenv
+            sudo pip install Pillow==6.1.0
             sudo pip install python-ev3dev
+            sudo pip install numpy
+            sudo pip install request
+            sudo pip install boto3
             pipenv install
       - run:
           command: |
-            pipenv run python sorter_app/ev3_scheduler.py
-      - run:
-          command: |
             pipenv run python test/unit/sorter_app/calc_test.py
-            pipenv run python test/unit/sorter_app/pi_test.py
+            pipenv run python test/unit/sorter_app/ev3_scheduler_test.py
       - store_test_results: # Upload test results for display in Test Summary: https://circleci.com/docs/2.0/collect-test-data/
           path: test-results
       - store_artifacts: # Upload test summary for display in Artifacts: https://circleci.com/docs/2.0/artifacts/

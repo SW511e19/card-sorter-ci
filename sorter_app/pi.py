@@ -1,32 +1,35 @@
 from pathlib import Path
-import numpy as np
 import os
 import time
 import uuid
+import PIL
 from PIL import Image, ImageChops
 import socket
 import boto3
 import requests
 
 class RasPi(object):
-    def __init__(self):
-        # Setting Up the Server Settings for Raspberry Pi
-        localIP     = "169.254.204.164"
-        localPort   = 22222
-        bufferSize  = 1024
 
-        #Defining Attributes
-        msgFromServer       = "This is sent from the server"
-        bytesToSend         = str.encode(msgFromServer)
+    # Setting Up the Server Settings for Raspberry Pi
+    localIP     = "169.254.204.164"
+    localPort   = 22222
+    bufferSize  = 1024
 
-        # Create a datagram socket
-        UDPServerSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+    #Defining Attributes
+    msgFromServer       = "This is sent from the server"
+    bytesToSend         = str.encode(msgFromServer)
 
-        # Bind to address and ip
-        #UDPServerSocket.bind((localIP, localPort))
+    # Create a datagram socket
+    UDPServerSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 
-        # Set OCR FilePath
-        filepath = 'card.txt'
+    # Bind to address and ip
+    UDPServerSocket.bind((localIP, localPort))
+
+    # Set OCR FilePath
+    filepath = 'card.txt'
+    
+    def __init__(self): # stuff here might have to be outside?
+        pass
 
     def convert(self, list):
         list.pop() #removes last empty element due to conversion
@@ -40,9 +43,7 @@ class RasPi(object):
         im2.save(dest, "png")
         print(dest)
         
-    def ocr_image(self):
-        image_path = "/home/pi/Desktop/ocr_card.png"
-        os.system("raspistill -sa 55 -q 90 -sh 100 -ISO 50 -t 1000 -o " + image_path )
+    def ocr_image(self, image_path):
         # Read document content
         with open(image_path, 'rb') as document:
             imageBytes = bytearray(document.read())
@@ -63,10 +64,7 @@ class RasPi(object):
                 file.write('\033' +  item["Text"] + '\033 \n')
         file.close()
 
-    def assescnc(self):
-        image_path = "/home/pi/Desktop/cnc.png"
-
-        os.system("raspistill -sa 55 -q 90 -sh 100 -ISO 50 -t 1000 -o " + image_path )
+    def assescnc(self, image_path):
 
         resizer(image_path, image_path)
         
@@ -143,7 +141,9 @@ class RasPi(object):
             # Checking if there is a card
             if (upcode == 1):
                 print (" Taking Picture and upload to MS")
-                assescnc()
+                image_path = "/home/pi/Desktop/cnc.png"
+                os.system("raspistill -sa 55 -q 90 -sh 100 -ISO 50 -t 1000 -o " + image_path )
+                assescnc(image_path)
                 res = requests.get('http://169.254.182.43:5000/isCard')
                 bytesToSend = str.encode(res.text)
                 UDPServerSocket.sendto(bytesToSend, address)
@@ -152,15 +152,19 @@ class RasPi(object):
             if (upcode == 2):
                 print("In UPCODE 2 + COL IS")
                 print(type(colNocr))
+
                 if(colNocr == "0"):
                     print (" Taking Picture with AWS")
-                    ocr_image()
+                    image_path = "/home/pi/Desktop/ocr_card.png"
+                    os.system("raspistill -sa 55 -q 90 -sh 100 -ISO 50 -t 1000 -o " + image_path )
+                    ocr_image(image_path)
                     class_upcode = classification()
                     print("THIS BOX INDEX : ")
                     print(class_upcode)
                     bytesToSend = str.encode(str(class_upcode))
                     UDPServerSocket.sendto(bytesToSend, address)
                     print (" out of protocol")
+
                 if(colNocr == "1"):
                     print (" Assessing color")
                     assescnc()
@@ -174,5 +178,5 @@ class RasPi(object):
 
 if __name__ == '__main__':
     rp = RasPi()
-    #rp.startConfig()
-    #rp.main()
+    rp.startConfig()
+    rp.main()
