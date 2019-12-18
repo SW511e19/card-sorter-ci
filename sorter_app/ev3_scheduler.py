@@ -1,6 +1,6 @@
 import sys
 
-sys.path.append("/projects/python-hello-world/test/mock")
+sys.path.append("/projects/tests/mock")
 import ev3_mock as ev3  # Simulated Test Environment
 # import ev3dev.ev3 as ev3 # Live Environment
 
@@ -108,8 +108,10 @@ class Scheduler(object):
     # Runs when an interrupt happens. Try to send another request if the protocol request did not reach the first time,
     # due to the other side having loss of internet connection, down timn / wasnt turned on sporadic process preventing
     # the message from being received.
-    def interrupt_handler(self):
+    def interrupt_handler(self, signum, frame):
+        print('Interrupt madafaka')
         if tasks_were_completed:
+            print('first if twat')
             globals()['tasks_were_completed'] = False
             globals()['current_cycle'] += 1
 
@@ -117,6 +119,7 @@ class Scheduler(object):
             globals()['passed_get_card_placement'] = False
             globals()['passed_position_cc'] = False
         else:
+            print('first else you goat')
             # If the pi or ev3_cc were doing a sporadic linux system call when receiving the udp-protocol they
             # might have missed it. Depending on what flag was reached try to send the protocol again. The interrupt
             # will send a new protocol signal and resume the code. Given that the other side of the protocol uses a few
@@ -149,23 +152,27 @@ class Scheduler(object):
         self.calibrate_machine(self.multiple_dispenser_motor, self.single_dispenser_motor, self.card_pusher_motor)
         minor_cycle_duration = 130
         second_scheduler = 5
-        signal.signal(signal.SIGALRM, self.interrupt_handler())
+        signal.signal(signal.SIGALRM, self.interrupt_handler)
 
+        ('Entering while loop')
         while True:
+            print('Starting cycle...')
             signal.alarm(minor_cycle_duration)
+            print('Cycle started')
 
             if second_scheduler == 5:  # Only runs this every 5 minor cycles
-                self.multiple_dispenser(multiple_dispenser_motor, back_pos)  # computation time (CT): 11
+                self.multiple_dispenser(self.multiple_dispenser_motor, back_pos)  # computation time (CT): 11
                 second_scheduler = 0
-            self.dispense_one_card(single_dispenser_motor)  # CT: 37
+            self.dispense_one_card(self.single_dispenser_motor)  # CT: 37
             globals()['passed_dispense_one_card'] = True
             globals()['card_placement'] = self.get_card_placement()
             globals()['passed_get_card_placement'] = True
             self.position_cc()
             globals()['passed_position_cc'] = True
-            self.push_card(piston_pos)  # CT: 5
+            self.push_card(self.card_pusher_motor, piston_pos)  # CT: 5
 
             self.wait_for_interrupt()
+            print('Cycle complete, dongass')
             second_scheduler += 1
 
     def test_runner(self):
@@ -209,4 +216,6 @@ class Scheduler(object):
 if __name__ == '__main__':
     schd = Scheduler()
     schd.cyclic_executives()
+    #sched = Scheduler()
     #schd.test_runner()
+
