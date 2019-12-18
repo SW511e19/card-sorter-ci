@@ -2,7 +2,7 @@ class Motor():
     def __init__(self, motor):
         position = 0
         self.motor = motor
-    
+
     def run_to_abs_pos(self, position_sp, speed_sp):
         self.position = position_sp
         print("Ran motor " + str(self) +"with position : " + str(position_sp) + " and Speed : " + str(speed_sp))
@@ -16,10 +16,10 @@ class ColorSensor():
 
     def MODE_COL_COLOR(self):
         print("SET COLOR MODE")
-        return 
+        return
 
     def COLOR_NOCOLOR(self):
-        return 0   
+        return 0
 
     def COLOR_BLACK(self):
         return 1
@@ -28,7 +28,7 @@ class ColorSensor():
         return 2
 
     def COLOR_GREEN(self):
-        return 3   
+        return 3
 
     def COLOR_YELLOW(self):
         return 4

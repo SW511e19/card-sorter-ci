@@ -24,10 +24,11 @@ class SchedulerSocket(object):
     def __init__(self):
         pass
 
-    def socket_if_card(self):
-        # Asks the Pi if there is card or not. Card:No_card
-        # Timeout on 15 seconds
+
+    def socket_if_card_request(self):
         UDP_client_socket.sendto(bytes_to_send, pi_address_port)
+
+    def socket_if_card_receive(self):
         msg_from_server = UDP_client_socket.recvfrom(buffer_size)
         msg = "Card check upcode from the Rasberry Pi {}".format(msg_from_server[0])
         print(msg)
@@ -40,18 +41,23 @@ class SchedulerSocket(object):
             globals()['saw_card'] = 0
             return False
 
-    def socket_get_placement(self):
+    def socket_get_placement_request(self):
         msg_from_client = "REQUEST"
         bytes_to_send = str.encode(msg_from_client)
-        buffer_size = 1024
         UDP_client_socket.sendto(bytes_to_send, pi_address_port)
+
+    def socket_get_placement_receive(self):
+        buffer_size = 1024
         msg_from_server = UDP_client_socket.recvfrom(buffer_size)
         print("Card check upcode from the Rasberry Pi {}".format(msg_from_server[0]))
         return msg_from_server[0]
 
-    def socket_place_cc(self, card_placement):
+    def socket_place_cc_request(self, card_placement):
         bts = str.encode(card_placement)
         cc_UDP_client_socket.sendto(bts, cc_address_port)
+
+
+    def socket_place_cc_receive(self):
         bytes_address_pair = cc_UDP_client_socket.recvfrom(buffer_size)  # Receives mesage back from card collector
         print("Connection Established")
         message = bytes_address_pair[0]  # Stores the message
