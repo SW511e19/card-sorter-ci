@@ -105,7 +105,7 @@ class Scheduler(object):
             time.sleep(5)
             return position
 
-    # Runs when an interrupt happens. Try to send another request if the protocol request did not reach the first time,
+    # Runs when an interrupt happens. Tries to send another request if the protocol request did not reach the first time,
     # due to the other side having loss of internet connection, down timn / wasnt turned on sporadic process preventing
     # the message from being received.
     def interrupt_handler(self, signum, frame):
